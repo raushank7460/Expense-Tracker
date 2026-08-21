@@ -1,0 +1,112 @@
+import React, { useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import Input from '../components/common/Input';
+import Button from '../components/common/Button';
+import Logo from '../components/common/Logo';
+import { HiOutlineLockClosed, HiOutlineEnvelope } from 'react-icons/hi2';
+
+export const LoginPage = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errors, setErrors] = useState({});
+  const { login, loading } = useAuth();
+  const { showToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = location.state?.from?.pathname || '/dashboard';
+
+  const validate = () => {
+    const errs = {};
+    if (!email.trim()) errs.email = 'Email address is required';
+    if (!password) errs.password = 'Password is required';
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validate()) return;
+
+    const res = await login(email, password);
+    if (res.success) {
+      showToast(`Welcome back, ${res.user.name}!`, 'success');
+      navigate(from, { replace: true });
+    } else {
+      showToast(res.message, 'error');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B0F19] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Glow Backdrop */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-brand-500/15 blur-[120px] rounded-full pointer-events-none" />
+
+      <div className="w-full max-w-md relative z-10 animate-slide-up">
+        {/* Brand header */}
+        <div className="text-center mb-8">
+          <Logo size="lg" to="/" className="justify-center" />
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-heading mt-4">
+            Welcome back
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Sign in to access your financial dashboard
+          </p>
+        </div>
+
+        {/* Login Card */}
+        <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+              label="Email Address"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              icon={<HiOutlineEnvelope className="w-4 h-4" />}
+              error={errors.email}
+              required
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={<HiOutlineLockClosed className="w-4 h-4" />}
+              error={errors.password}
+              required
+            />
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                className="w-full font-bold"
+                isLoading={loading}
+              >
+                Sign In
+              </Button>
+            </div>
+          </form>
+
+          <div className="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+            Don't have an account yet?{' '}
+            <Link
+              to="/register"
+              className="font-bold text-brand-600 dark:text-brand-400 hover:underline"
+            >
+              Sign up for free
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default LoginPage;
