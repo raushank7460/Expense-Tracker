@@ -19,27 +19,30 @@ export const AuthProvider = ({ children }) => {
   const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Check token validity on mount if user exists
+    // Verify token on app startup
     const verifyUser = async () => {
       if (user?.token) {
         try {
           const res = await authService.getProfile();
           if (res.success) {
-            setUser((prev) => ({
-              ...prev,
-              ...res.data,
-            }));
-            localStorage.setItem(
-              'userInfo',
-              JSON.stringify({
-                ...user,
-                ...res.data,
-              })
-            );
+            // Token valid - update user data with latest from server
+            const updatedUser = { ...user, ...res.data };
+            setUser(updatedUser);
+            localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+          } else {
+            // Server returned failure but not a 401 — keep user logged in
+            // (could be a temporary server issue)
           }
         } catch (err) {
-          // Token expired or invalid
-          logout();
+          // IMPORTANT: Only logout if backend explicitly says token is invalid (401).
+          // For network errors, server down, timeout etc — keep user logged in so they
+          // don't get kicked out just because of a temporary connection problem.
+          const status = err.response?.status;
+          if (status === 401) {
+            // Token is genuinely expired or invalid — force logout
+            logout();
+          }
+          // Any other error (network, 500, etc) → stay logged in, just mark auth as checked
         }
       }
       setAuthChecked(true);
@@ -47,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
     verifyUser();
 
-    // Listen for custom 401 logout event
+    // Listen for custom 401 logout event (fired by api.js interceptor)
     const handleLogoutEvent = () => {
       setUser(null);
       localStorage.removeItem('userInfo');
