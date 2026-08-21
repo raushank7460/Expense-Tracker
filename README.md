@@ -1,5 +1,5 @@
 # SpendFlow — Modern MERN Stack Expense Tracker & Financial Analytics Web Application
-
+#Good
 A full-stack, responsive, SaaS-grade **Expense Tracker Web Application** built with the **MERN Stack (MongoDB, Express.js, React.js, Node.js)**. Features secure JWT authentication, expense and income management, category budgets with real-time progress & threshold alerts, interactive analytics powered by Recharts, custom categories, CSV/Print reports, Dark & Light modes, and multi-currency support.
 
 ---
