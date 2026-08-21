@@ -1,0 +1,7 @@
+services:
+  - type: web
+    name: expense-tracker-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
